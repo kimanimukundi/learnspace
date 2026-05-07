@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LearnSpace — Your Personal AI Tutor</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0e0f11;
+    --bg2: #161719;
+    --bg3: #1e2023;
+    --bg4: #27292d;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #f0ede8;
+    --text2: #9b9890;
+    --text3: #5e5c58;
+    --accent: #c8f07a;
+    --accent2: #a8d45c;
+    --accent-dim: rgba(200,240,122,0.12);
+    --accent-dim2: rgba(200,240,122,0.06);
+    --teal: #6ee7d4;
+    --teal-dim: rgba(110,231,212,0.1);
+    --amber: #f5c542;
+    --amber-dim: rgba(245,197,66,0.1);
+    --coral: #f07060;
+    --coral-dim: rgba(240,112,96,0.1);
+    --purple: #c4b5fd;
+    --purple-dim: rgba(196,181,253,0.1);
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 15px; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+    gap: 4px;
+  }
+  .logo {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .logo-mark {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+  .logo-sub { font-size: 11px; color: var(--text3); letter-spacing: 0.5px; text-transform: uppercase; margin-top: 1px; }
+
+  .nav-section { padding: 8px 12px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 20px; cursor: pointer;
+    border-radius: 0; transition: background 0.15s;
+    font-size: 14px; color: var(--text2);
+    position: relative;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+  .nav-item.active { color: var(--text); background: rgba(200,240,122,0.08); }
+  .nav-item.active::before {
+    content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    height: 18px; width: 2.5px; background: var(--accent); border-radius: 0 2px 2px 0;
+  }
+  .nav-icon { width: 18px; height: 18px; opacity: 0.7; flex-shrink: 0; }
+  .nav-item.active .nav-icon { opacity: 1; }
+  .nav-badge {
+    margin-left: auto; font-size: 11px; background: var(--accent-dim);
+    color: var(--accent); padding: 1px 7px; border-radius: 20px;
+  }
+
+  .material-list { flex: 1; overflow-y: auto; padding: 0 12px; margin-top: 4px; }
+  .material-list::-webkit-scrollbar { width: 4px; }
+  .material-list::-webkit-scrollbar-track { background: transparent; }
+  .material-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+  .material-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; cursor: pointer; border-radius: var(--radius-sm);
+    transition: background 0.15s; margin-bottom: 2px;
+  }
+  .material-item:hover { background: var(--bg3); }
+  .material-item.active { background: var(--bg3); }
+  .mat-icon {
+    width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .mat-info { min-width: 0; }
+  .mat-name { font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mat-meta { font-size: 11px; color: var(--text3); }
+
+  .add-btn {
+    margin: 12px; padding: 10px;
+    background: var(--accent-dim2); border: 1px dashed rgba(200,240,122,0.2);
+    border-radius: var(--radius-sm); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; color: var(--accent); font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .add-btn:hover { background: var(--accent-dim); border-color: rgba(200,240,122,0.4); }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* VIEWS */
+  .view { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+  .view.active { display: flex; }
+
+  /* ─── UPLOAD VIEW ─── */
+  .upload-view {
+    padding: 40px;
+    align-items: center;
+    justify-content: flex-start;
+    overflow-y: auto;
+  }
+  .upload-header { text-align: center; margin-bottom: 40px; width: 100%; }
+  .upload-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 36px; color: var(--text);
+    line-height: 1.1; margin-bottom: 8px;
+  }
+  .upload-title em { color: var(--accent); font-style: italic; }
+  .upload-sub { color: var(--text2); font-size: 15px; }
+
+  .upload-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 16px; width: 100%; max-width: 860px; margin: 0 auto;
+  }
+  .upload-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px 24px;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
+    position: relative; overflow: hidden;
+  }
+  .upload-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .upload-card:hover { background: var(--bg3); border-color: var(--border2); transform: translateY(-1px); }
+  .upload-card:hover::before { opacity: 1; }
+  .upload-card.pdf::before { background: var(--coral); }
+  .upload-card.video::before { background: var(--teal); }
+  .upload-card.youtube::before { background: var(--amber); }
+  .upload-card.notes::before { background: var(--accent); }
+  .upload-card.link::before { background: var(--purple); }
+  .upload-card.audio::before { background: var(--teal); }
+
+  .uc-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .uc-title { font-size: 15px; font-weight: 500; color: var(--text); }
+  .uc-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .uc-exts { font-size: 11px; color: var(--text3); }
+
+  .url-input-area {
+    display: none; width: 100%; max-width: 860px; margin: 16px auto 0;
+    flex-direction: column; gap: 10px;
+  }
+  .url-input-area.show { display: flex; }
+  .url-row { display: flex; gap: 10px; }
+  .url-input {
+    flex: 1; background: var(--bg2); border: 1px solid var(--border2);
+    color: var(--text); padding: 12px 16px; border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .url-input:focus { border-color: var(--accent); }
+  .url-input::placeholder { color: var(--text3); }
+  .url-btn {
+    background: var(--accent); color: #0e0f11; padding: 12px 24px;
+    border: none; border-radius: var(--radius-sm); cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+    transition: background 0.2s; white-space: nowrap;
+  }
+  .url-btn:hover { background: var(--accent2); }
+
+  .recent-uploads { width: 100%; max-width: 860px; margin: 32px auto 0; }
+  .section-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); margin-bottom: 12px; }
+  .recent-list { display: flex; flex-direction: column; gap: 8px; }
+  .recent-item {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 18px;
+    display: flex; align-items: center; gap: 14px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .recent-item:hover { background: var(--bg3); }
+  .ri-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .ri-info { flex: 1; min-width: 0; }
+  .ri-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ri-meta { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .ri-action { font-size: 12px; color: var(--accent); cursor: pointer; white-space: nowrap; }
+
+  /* ─── CHAT VIEW ─── */
+  .chat-view { background: var(--bg); }
+  .chat-header {
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+    background: var(--bg2);
+  }
+  .chat-context {
+    display: flex; align-items: center; gap: 8px; flex: 1;
+  }
+  .ctx-badge {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--bg3); border: 1px solid var(--border2);
+    padding: 5px 10px; border-radius: 20px; font-size: 12px; color: var(--text2);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .ctx-badge:hover { border-color: var(--accent); color: var(--text); }
+  .ctx-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .ctx-badge.inactive .dot { background: var(--text3); }
+  .chat-title { font-size: 15px; font-weight: 500; }
+  .chat-subtitle { font-size: 12px; color: var(--text2); }
+
+  .messages {
+    flex: 1; overflow-y: auto; padding: 28px;
+    display: flex; flex-direction: column; gap: 24px;
+  }
+  .messages::-webkit-scrollbar { width: 4px; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+  .msg { display: flex; gap: 14px; max-width: 800px; }
+  .msg.user { flex-direction: row-reverse; align-self: flex-end; }
+  .msg-avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0; margin-top: 2px;
+  }
+  .msg.ai .msg-avatar { background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+  .msg.user .msg-avatar { background: var(--bg3); color: var(--text2); }
+  .msg-bubble {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 18px;
+    font-size: 14px; line-height: 1.7; color: var(--text);
+    max-width: 680px;
+  }
+  .msg.user .msg-bubble { background: var(--bg3); }
+  .msg-bubble p { margin-bottom: 10px; }
+  .msg-bubble p:last-child { margin-bottom: 0; }
+  .msg-bubble strong { color: var(--accent); font-weight: 500; }
+  .msg-bubble .source-ref {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--teal-dim); color: var(--teal);
+    font-size: 11px; padding: 2px 8px; border-radius: 12px;
+    margin: 0 2px; cursor: pointer;
+  }
+
+  .citation-card {
+    margin-top: 14px; padding: 12px 14px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-left: 2px solid var(--teal); border-radius: var(--radius-sm);
+    font-size: 12px; color: var(--text2); line-height: 1.6;
+  }
+  .citation-source { font-size: 11px; color: var(--teal); margin-bottom: 4px; }
+
+  .thinking {
+    display: flex; gap: 5px; align-items: center; padding: 4px 0;
+  }
+  .thinking span {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--text3);
+    animation: bounce 1.2s infinite ease-in-out;
+  }
+  .thinking span:nth-child(2) { animation-delay: 0.2s; }
+  .thinking span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+
+  .chat-input-area {
+    padding: 16px 28px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--bg2);
+  }
+  .chat-suggestions {
+    display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+  }
+  .suggestion {
+    background: var(--bg3); border: 1px solid var(--border);
+    color: var(--text2); font-size: 12px; padding: 6px 12px;
+    border-radius: 20px; cursor: pointer; transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .suggestion:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim2); }
+
+  .input-row {
+    display: flex; gap: 10px; align-items: flex-end;
+  }
+  .chat-textarea {
+    flex: 1; background: var(--bg3); border: 1px solid var(--border2);
+    color: var(--text); padding: 12px 16px; border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    outline: none; resize: none; min-height: 44px; max-height: 160px;
+    line-height: 1.5; transition: border-color 0.2s;
+  }
+  .chat-textarea:focus { border-color: var(--accent); }
+  .chat-textarea::placeholder { color: var(--text3); }
+  .send-btn {
+    width: 44px; height: 44px; border-radius: var(--radius-sm);
+    background: var(--accent); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--bg); transition: background 0.2s; flex-shrink: 0;
+  }
+  .send-btn:hover { background: var(--accent2); }
+  .send-btn:disabled { background: var(--bg4); color: var(--text3); cursor: not-allowed; }
+
+  /* ─── LIBRARY VIEW ─── */
+  .library-view { padding: 32px 36px; overflow-y: auto; }
+  .library-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+  .library-title { font-family: 'Instrument Serif', serif; font-size: 28px; }
+  .lib-tabs { display: flex; gap: 4px; background: var(--bg2); padding: 4px; border-radius: var(--radius-sm); }
+  .lib-tab {
+    padding: 7px 14px; border-radius: 6px; font-size: 13px;
+    cursor: pointer; color: var(--text2); transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif; border: none; background: none;
+  }
+  .lib-tab.active { background: var(--bg3); color: var(--text); }
+
+  .library-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+  .lib-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .lib-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+  .lib-card-cover {
+    height: 120px; display: flex; align-items: center; justify-content: center;
+    font-size: 42px; position: relative;
+  }
+  .lib-card-body { padding: 14px 16px; }
+  .lib-card-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+  .lib-card-meta { font-size: 12px; color: var(--text2); margin-bottom: 10px; }
+  .lib-card-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag {
+    font-size: 11px; padding: 3px 8px; border-radius: 20px;
+    background: var(--bg3); color: var(--text2); border: 1px solid var(--border);
+  }
+  .lib-card-footer {
+    padding: 10px 16px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .progress-bar { flex: 1; height: 3px; background: var(--bg4); border-radius: 2px; margin-right: 10px; }
+  .progress-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+  .progress-label { font-size: 11px; color: var(--text3); }
+
+  /* ─── FLASHCARDS VIEW ─── */
+  .flashcards-view { padding: 32px 36px; overflow-y: auto; align-items: center; }
+  .fc-header { width: 100%; max-width: 700px; margin: 0 auto 28px; }
+  .fc-title { font-family: 'Instrument Serif', serif; font-size: 28px; margin-bottom: 4px; }
+  .fc-meta { color: var(--text2); font-size: 14px; }
+  .fc-progress { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+  .fc-prog-bar { flex: 1; height: 4px; background: var(--bg3); border-radius: 2px; }
+  .fc-prog-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width 0.4s; }
+  .fc-count { font-size: 13px; color: var(--text2); white-space: nowrap; }
+
+  .flashcard-wrapper { width: 100%; max-width: 700px; perspective: 1200px; margin: 0 auto; }
+  .flashcard {
+    width: 100%; height: 280px; position: relative;
+    transform-style: preserve-3d; transition: transform 0.5s ease;
+    cursor: pointer;
+  }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .fc-face {
+    position: absolute; inset: 0;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); backface-visibility: hidden;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 36px; text-align: center;
+  }
+  .fc-back { transform: rotateY(180deg); }
+  .fc-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 16px; }
+  .fc-front .fc-label { color: var(--accent); }
+  .fc-question { font-family: 'Instrument Serif', serif; font-size: 22px; line-height: 1.4; color: var(--text); }
+  .fc-answer { font-size: 15px; line-height: 1.7; color: var(--text2); }
+  .fc-hint { font-size: 12px; color: var(--text3); margin-top: 16px; }
+
+  .fc-actions { display: flex; gap: 12px; margin: 20px auto; width: 100%; max-width: 700px; }
+  .fc-btn {
+    flex: 1; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+    cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 14px;
+    font-weight: 500; transition: all 0.2s; background: var(--bg2);
+  }
+  .fc-btn.wrong { color: var(--coral); border-color: rgba(240,112,96,0.3); }
+  .fc-btn.wrong:hover { background: var(--coral-dim); }
+  .fc-btn.right { color: var(--accent); border-color: rgba(200,240,122,0.3); }
+  .fc-btn.right:hover { background: var(--accent-dim); }
+  .fc-btn.skip { color: var(--text2); }
+  .fc-btn.skip:hover { background: var(--bg3); }
+
+  /* ─── SUMMARY VIEW ─── */
+  .summary-view { padding: 32px 36px; overflow-y: auto; }
+  .sum-layout { display: grid; grid-template-columns: 1fr 280px; gap: 24px; max-width: 1000px; }
+  .sum-content { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; }
+  .sum-title { font-family: 'Instrument Serif', serif; font-size: 28px; margin-bottom: 6px; }
+  .sum-meta { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+  .sum-body { font-size: 14px; line-height: 1.85; color: var(--text2); }
+  .sum-body h3 { font-size: 16px; color: var(--text); margin: 20px 0 8px; font-weight: 500; }
+  .sum-body p { margin-bottom: 14px; }
+  .sum-body ul { padding-left: 20px; margin-bottom: 14px; }
+  .sum-body li { margin-bottom: 6px; }
+  .sum-sidebar { display: flex; flex-direction: column; gap: 16px; }
+  .sum-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+  .sum-card-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); margin-bottom: 12px; }
+  .key-concept {
+    display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px;
+    font-size: 13px; color: var(--text2);
+  }
+  .key-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 6px; }
+
+  /* ─── EMPTY STATE ─── */
+  .empty-chat {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 40px; text-align: center;
+  }
+  .empty-icon { font-size: 48px; margin-bottom: 20px; opacity: 0.5; }
+  .empty-title { font-family: 'Instrument Serif', serif; font-size: 24px; margin-bottom: 8px; }
+  .empty-sub { color: var(--text2); font-size: 14px; max-width: 400px; line-height: 1.6; }
+
+  /* ─── PROCESSING MODAL ─── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    z-index: 100; align-items: center; justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: var(--radius); padding: 32px; width: 420px; text-align: center;
+  }
+  .modal-spinner {
+    width: 48px; height: 48px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto 20px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .modal-title { font-size: 18px; font-weight: 500; margin-bottom: 8px; }
+  .modal-sub { font-size: 13px; color: var(--text2); line-height: 1.6; }
+  .modal-progress { margin-top: 20px; background: var(--bg3); border-radius: 4px; height: 4px; overflow: hidden; }
+  .modal-bar { height: 100%; background: var(--accent); border-radius: 4px; width: 0%; transition: width 0.3s; }
+
+  /* ─── OFFLINE BANNER ─── */
+  .offline-banner {
+    background: var(--amber-dim); border-bottom: 1px solid rgba(245,197,66,0.2);
+    padding: 8px 20px; display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: var(--amber);
+  }
+  .offline-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); }
+
+  /* ─── SETTINGS PANEL ─── */
+  .settings-view { padding: 32px 36px; overflow-y: auto; }
+  .settings-title { font-family: 'Instrument Serif', serif; font-size: 28px; margin-bottom: 28px; }
+  .settings-section { margin-bottom: 32px; }
+  .settings-section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); margin-bottom: 14px; }
+  .setting-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); margin-bottom: 8px;
+  }
+  .setting-info { display: flex; flex-direction: column; gap: 2px; }
+  .setting-label { font-size: 14px; }
+  .setting-desc { font-size: 12px; color: var(--text2); }
+  .toggle {
+    width: 40px; height: 22px; border-radius: 11px; background: var(--bg4);
+    position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 18px; height: 18px; border-radius: 50%; background: white;
+    transition: transform 0.2s;
+  }
+  .toggle.on::after { transform: translateX(18px); }
+  .model-select {
+    background: var(--bg3); border: 1px solid var(--border2); color: var(--text);
+    padding: 8px 12px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; cursor: pointer; outline: none;
+  }
+
+  /* File input hidden */
+  #file-input { display: none; }
+
+  /* Animations */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .msg { animation: fadeIn 0.25s ease; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">LearnSpace</div>
+    <div class="logo-sub">Personal AI Tutor</div>
+  </div>
+
+  <div class="nav-section">Workspace</div>
+  <div class="nav-item active" onclick="showView('upload')">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    Add Content
+  </div>
+  <div class="nav-item" onclick="showView('chat')">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    Ask Questions
+    <span class="nav-badge">AI</span>
+  </div>
+  <div class="nav-item" onclick="showView('library')">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+    My Library
+  </div>
+
+  <div class="nav-section" style="margin-top:8px">Study Tools</div>
+  <div class="nav-item" onclick="showView('flashcards')">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="12" y1="6" x2="12" y2="18"/></svg>
+    Flashcards
+  </div>
+  <div class="nav-item" onclick="showView('summary')">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
+    Summaries
+  </div>
+  <div class="nav-item" onclick="showView('settings')">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    Settings
+  </div>
+
+  <div class="nav-section" style="margin-top:8px">Materials</div>
+  <div class="material-list" id="material-list">
+    <!-- populated by renderSidebar() -->
+  </div>
+
+  <button class="add-btn" onclick="showView('upload')">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Add material
+  </button>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+  <div id="offline-banner" class="offline-banner" style="display:none">
+    <div class="offline-dot"></div>
+    Offline mode — using local AI model (Ollama) and cached content
+  </div>
+
+  <!-- ─── UPLOAD VIEW ─── -->
+  <div id="view-upload" class="view upload-view active">
+    <div class="upload-header">
+      <h1 class="upload-title">Add <em>learning material</em></h1>
+      <p class="upload-sub">Upload files, paste links, or add YouTube videos to study from</p>
+    </div>
+
+    <div class="upload-grid">
+      <div class="upload-card pdf" onclick="triggerUpload('pdf')">
+        <div class="uc-icon" style="background:var(--coral-dim)">📄</div>
+        <div class="uc-title">PDF / Book</div>
+        <div class="uc-desc">Textbooks, research papers, documents — fully indexed for Q&A</div>
+        <div class="uc-exts">.pdf, .epub</div>
+      </div>
+      <div class="upload-card video" onclick="triggerUpload('video')">
+        <div class="uc-icon" style="background:var(--teal-dim)">🎬</div>
+        <div class="uc-title">Video File</div>
+        <div class="uc-desc">Lecture recordings — transcribed and searchable automatically</div>
+        <div class="uc-exts">.mp4, .mov, .mkv, .webm</div>
+      </div>
+      <div class="upload-card youtube" onclick="showUrlInput('youtube')">
+        <div class="uc-icon" style="background:var(--amber-dim)">▶️</div>
+        <div class="uc-title">YouTube Video</div>
+        <div class="uc-desc">Paste any YouTube link — transcript extracted instantly</div>
+        <div class="uc-exts">youtube.com, youtu.be</div>
+      </div>
+      <div class="upload-card notes" onclick="triggerUpload('notes')">
+        <div class="uc-icon" style="background:var(--accent-dim)">📝</div>
+        <div class="uc-title">Notes / Slides</div>
+        <div class="uc-desc">Handwritten notes, Word docs, PowerPoint, lecture slides</div>
+        <div class="uc-exts">.docx, .pptx, .txt, .md</div>
+      </div>
+      <div class="upload-card link" onclick="showUrlInput('link')">
+        <div class="uc-icon" style="background:var(--purple-dim)">🔗</div>
+        <div class="uc-title">Web Article / Link</div>
+        <div class="uc-desc">Any article, documentation, or webpage — saved for offline</div>
+        <div class="uc-exts">Any URL</div>
+      </div>
+      <div class="upload-card audio" onclick="triggerUpload('audio')">
+        <div class="uc-icon" style="background:var(--teal-dim)">🎙️</div>
+        <div class="uc-title">Audio / Podcast</div>
+        <div class="uc-desc">Recorded lectures, podcasts — transcribed for Q&A</div>
+        <div class="uc-exts">.mp3, .m4a, .wav</div>
+      </div>
+    </div>
+
+    <div class="url-input-area" id="url-input-area">
+      <div class="url-row">
+        <input class="url-input" id="url-field" placeholder="Paste URL here..." />
+        <button class="url-btn" onclick="processUrl()">Process</button>
+        <button class="url-btn" style="background:var(--bg3);color:var(--text2)" onclick="hideUrlInput()">Cancel</button>
+      </div>
+    </div>
+
+    <div class="recent-uploads">
+      <div class="section-label">Recently added</div>
+      <div class="recent-list" id="recent-list">
+        <div class="recent-item" onclick="openMaterial('ML Fundamentals.pdf')">
+          <div class="ri-icon" style="background:rgba(240,112,96,0.1)">📄</div>
+          <div class="ri-info">
+            <div class="ri-name">Machine Learning Fundamentals.pdf</div>
+            <div class="ri-meta">142 pages · 8.4 MB · Added 2 days ago · <span style="color:var(--accent)">✓ Indexed</span></div>
+          </div>
+          <div class="ri-action" onclick="event.stopPropagation();showView('chat')">Ask questions →</div>
+        </div>
+        <div class="recent-item" onclick="openMaterial('Neural Networks')">
+          <div class="ri-icon" style="background:rgba(110,231,212,0.1)">▶️</div>
+          <div class="ri-info">
+            <div class="ri-name">Neural Networks Explained – 3Blue1Brown</div>
+            <div class="ri-meta">YouTube · 1h 24m · Added yesterday · <span style="color:var(--accent)">✓ Transcribed</span></div>
+          </div>
+          <div class="ri-action" onclick="event.stopPropagation();showView('chat')">Ask questions →</div>
+        </div>
+        <div class="recent-item" onclick="openMaterial('Study Notes')">
+          <div class="ri-icon" style="background:rgba(200,240,122,0.1)">📝</div>
+          <div class="ri-info">
+            <div class="ri-name">Study Notes - Week 3.docx</div>
+            <div class="ri-meta">8 pages · 124 KB · Added today · <span style="color:var(--accent)">✓ Indexed</span></div>
+          </div>
+          <div class="ri-action" onclick="event.stopPropagation();showView('chat')">Ask questions →</div>
+        </div>
+      </div>
+    </div>
+    <input type="file" id="file-input" multiple onchange="handleFileUpload(event)"/>
+  </div>
+
+  <!-- ─── CHAT VIEW ─── -->
+  <div id="view-chat" class="view chat-view" style="display:none">
+    <div class="chat-header">
+      <div>
+        <div class="chat-title">Ask questions</div>
+        <div class="chat-subtitle">Using your uploaded materials</div>
+      </div>
+      <div class="chat-context" id="context-badges">
+        <!-- populated by renderContextBadges() -->
+      </div>
+    </div>
+
+    <div class="messages" id="messages">
+		  <div class="msg ai" id="welcome-msg">
+	  <div class="msg-avatar">LS</div>
+	  <div class="msg-bubble">
+		<p>Hi! I've indexed your materials and I'm ready to help you learn. I can answer questions, explain concepts, quiz you, or summarize topics from your uploaded content.</p>
+		<p id="welcome-context">Select materials from the sidebar to get started.</p>
+	  </div>
+    </div>
+
+    <div class="chat-input-area">
+      <div class="chat-suggestions" id="suggestions">
+        <button class="suggestion" onclick="sendSuggestion(this)">What is gradient descent?</button>
+        <button class="suggestion" onclick="sendSuggestion(this)">Explain backpropagation simply</button>
+        <button class="suggestion" onclick="sendSuggestion(this)">What are the key concepts in Chapter 3?</button>
+        <button class="suggestion" onclick="sendSuggestion(this)">Quiz me on neural networks</button>
+        <button class="suggestion" onclick="sendSuggestion(this)">Summarise what I've covered so far</button>
+      </div>
+      <div class="input-row">
+        <textarea class="chat-textarea" id="chat-input" placeholder="Ask anything about your materials..." rows="1"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" id="send-btn" onclick="sendMessage()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── LIBRARY VIEW ─── -->
+  <div id="view-library" class="view library-view" style="display:none">
+    <div class="library-header">
+      <h2 class="library-title">My Library</h2>
+      <div class="lib-tabs">
+        <button class="lib-tab active" onclick="filterLib(this,'all')">All</button>
+        <button class="lib-tab" onclick="filterLib(this,'pdf')">PDFs</button>
+        <button class="lib-tab" onclick="filterLib(this,'video')">Videos</button>
+        <button class="lib-tab" onclick="filterLib(this,'notes')">Notes</button>
+      </div>
+    </div>
+    <div class="library-grid" id="library-grid">
+      <!-- populated by renderLibrary() -->
+    </div>
+  </div>
+
+  <!-- ─── FLASHCARDS VIEW ─── -->
+  <div id="view-flashcards" class="view flashcards-view" style="display:none">
+    <div class="fc-header">
+      <h2 class="fc-title" id="fc-title">Flashcards</h2>
+      <p class="fc-meta" id="fc-meta">Open a material from the Library to generate flashcards</p>
+      <div class="fc-progress">
+        <div class="fc-prog-bar"><div class="fc-prog-fill" id="fc-progress-fill" style="width:20%"></div></div>
+        <span class="fc-count" id="fc-count">1 / 5</span>
+      </div>
+    </div>
+
+    <div class="flashcard-wrapper">
+      <div class="flashcard" id="flashcard" onclick="flipCard()">
+        <div class="fc-face fc-front">
+          <div class="fc-label">Question</div>
+          <div class="fc-question" id="fc-question">What is the difference between supervised and unsupervised learning?</div>
+          <div class="fc-hint">Click to reveal answer</div>
+        </div>
+        <div class="fc-face fc-back">
+          <div class="fc-label">Answer</div>
+          <div class="fc-answer" id="fc-answer">Supervised learning uses labelled training data to learn a mapping from inputs to outputs. Unsupervised learning finds patterns in unlabelled data without predefined correct answers — e.g. clustering, dimensionality reduction.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fc-actions">
+      <button class="fc-btn wrong" onclick="nextCard('wrong')">✗ Didn't know</button>
+      <button class="fc-btn skip" onclick="nextCard('skip')">→ Skip</button>
+      <button class="fc-btn right" onclick="nextCard('right')">✓ Got it</button>
+    </div>
+  </div>
+
+  <!-- ─── SUMMARY VIEW ─── -->
+  <div id="view-summary" class="view summary-view" style="display:none">
+    <div class="sum-layout">
+      <div class="sum-content">
+        <h2 class="sum-title" id="sum-title">Summary</h2>
+        <p class="sum-meta" id="sum-meta">Select a material from the Library to generate a summary</p>
+        <div class="sum-body" id="sum-body"></div>
+      </div>
+      <div class="sum-sidebar">
+        <div class="sum-card">
+          <div class="sum-card-title">Key concepts</div>
+          <div id="sum-concepts"></div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-card-title">Actions</div>
+          <button id="sum-flashcards-btn" class="url-btn" style="width:100%;margin-bottom:8px">Generate flashcards</button>
+          <button id="sum-chat-btn" class="url-btn" style="width:100%;background:var(--bg3);color:var(--text2)">Ask questions</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SETTINGS VIEW ─── -->
+  <div id="view-settings" class="view settings-view" style="display:none">
+    <h2 class="settings-title">Settings</h2>
+    <div class="settings-section">
+      <div class="settings-section-title">AI Model</div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Online model</span>
+          <span class="setting-desc">Claude (via API) — best quality, requires internet</span>
+        </div>
+        <select class="model-select">
+          <option>claude-sonnet-4-5</option>
+          <option>claude-haiku-4-5</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Offline model</span>
+          <span class="setting-desc">Local LLM via Ollama — works without internet</span>
+        </div>
+        <select class="model-select">
+          <option>llama3.2:3b</option>
+          <option>llama3.2:8b</option>
+          <option>mistral:7b</option>
+        </select>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Offline & Storage</div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Offline mode</span>
+          <span class="setting-desc">Switch to local model when no internet is detected</span>
+        </div>
+        <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Auto-transcribe videos</span>
+          <span class="setting-desc">Transcribe uploaded video/audio using Whisper locally</span>
+        </div>
+        <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Save content offline</span>
+          <span class="setting-desc">Cache all indexed content for offline access</span>
+        </div>
+        <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Study Preferences</div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Show source citations</span>
+          <span class="setting-desc">Show which part of your material answers came from</span>
+        </div>
+        <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Spaced repetition</span>
+          <span class="setting-desc">Smart flashcard scheduling based on your performance</span>
+        </div>
+        <div class="toggle" onclick="this.classList.toggle('on')"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- PROCESSING MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-spinner"></div>
+    <div class="modal-title" id="modal-title">Processing your content</div>
+    <div class="modal-sub" id="modal-sub">Extracting text and creating searchable embeddings…</div>
+    <div class="modal-progress"><div class="modal-bar" id="modal-bar"></div></div>
+  </div>
+</div>
+
+<script>
+const API = '';  // same origin — backend serves this file
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let allMaterials   = [];          // [{id, name, type, status, chunk_count, ...}]
+let activeMaterialIds = new Set(); // IDs selected as chat context
+let currentSessionId  = null;
+let isThinking        = false;
+let currentFlashcards = [];
+let cardIdx           = 0;
+let currentSummaryId  = null;
+let currentUrlType    = '';
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => { v.style.display = 'none'; v.classList.remove('active'); });
+  const el = document.getElementById('view-' + name);
+  if (el) { el.style.display = 'flex'; el.classList.add('active'); }
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  const navMap = { upload: 0, chat: 1, library: 2, flashcards: 3, summary: 4, settings: 5 };
+  const navItems = document.querySelectorAll('.nav-item');
+  if (navMap[name] !== undefined && navItems[navMap[name]]) navItems[navMap[name]].classList.add('active');
+  if (name === 'library')    renderLibrary();
+  if (name === 'chat')       renderContextBadges();
+  if (name === 'flashcards') renderFlashcardsView();
+  if (name === 'summary')    renderSummaryView();
+}
+
+// ─── LOAD MATERIALS FROM BACKEND ─────────────────────────────────────────────
+async function loadMaterials() {
+  try {
+    const res = await fetch(`${API}/api/materials`);
+    if (!res.ok) return;
+    allMaterials = await res.json();
+    renderSidebar();
+    renderRecentUploads();
+  } catch(e) {
+    console.warn('Could not load materials:', e);
+  }
+}
+
+function getTypeIcon(type, name='') {
+  if (type === 'youtube') return { icon: '▶️', bg: 'rgba(245,197,66,0.1)' };
+  if (type === 'video')   return { icon: '🎬', bg: 'rgba(110,231,212,0.1)' };
+  if (type === 'audio')   return { icon: '🎙️', bg: 'rgba(110,231,212,0.1)' };
+  if (type === 'pdf')     return { icon: '📄', bg: 'rgba(240,112,96,0.1)' };
+  if (type === 'link')    return { icon: '🔗', bg: 'rgba(196,181,253,0.1)' };
+  return { icon: '📝', bg: 'rgba(200,240,122,0.1)' };
+}
+
+function statusBadge(status) {
+  if (status === 'ready')      return '<span style="color:var(--accent)">✓ Ready</span>';
+  if (status === 'processing') return '<span style="color:var(--amber)">⟳ Processing…</span>';
+  if (status === 'error')      return '<span style="color:var(--coral)">✗ Error</span>';
+  return '<span style="color:var(--text3)">Pending</span>';
+}
+
+// ─── SIDEBAR ─────────────────────────────────────────────────────────────────
+function renderSidebar() {
+  const list = document.getElementById('material-list');
+  list.innerHTML = '';
+  const ready = allMaterials.filter(m => m.status === 'ready');
+  if (!ready.length) {
+    list.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text3)">No materials yet — add some above</div>';
+    return;
+  }
+  ready.forEach(m => {
+    const { icon, bg } = getTypeIcon(m.type);
+    const isActive = activeMaterialIds.has(m.id);
+    const div = document.createElement('div');
+    div.className = 'material-item' + (isActive ? ' active' : '');
+    div.dataset.id = m.id;
+    div.innerHTML = `
+      <div class="mat-icon" style="background:${bg}">${icon}</div>
+      <div class="mat-info">
+        <div class="mat-name">${m.name.length > 22 ? m.name.slice(0,20)+'…' : m.name}</div>
+        <div class="mat-meta">${m.type} · ${m.chunk_count} chunks</div>
+      </div>`;
+    div.onclick = () => toggleMaterial(m.id, div);
+    list.appendChild(div);
+  });
+}
+
+function toggleMaterial(id, el) {
+  if (activeMaterialIds.has(id)) {
+    activeMaterialIds.delete(id);
+    el.classList.remove('active');
+  } else {
+    activeMaterialIds.add(id);
+    el.classList.add('active');
+  }
+  renderContextBadges();
+}
+
+// ─── CONTEXT BADGES IN CHAT ───────────────────────────────────────────────────
+function renderContextBadges() {
+  const container = document.getElementById('context-badges');
+  if (!container) return;
+  container.innerHTML = '';
+  const ready = allMaterials.filter(m => m.status === 'ready');
+  if (!ready.length) {
+    container.innerHTML = '<span style="font-size:12px;color:var(--text3)">No materials — upload something first</span>';
+    return;
+  }
+  ready.forEach(m => {
+    const isActive = activeMaterialIds.has(m.id);
+    const badge = document.createElement('div');
+    badge.className = 'ctx-badge' + (isActive ? '' : ' inactive');
+    badge.dataset.id = m.id;
+    badge.innerHTML = `<div class="dot"></div>${m.name.length > 20 ? m.name.slice(0,18)+'…' : m.name}`;
+    badge.onclick = () => {
+      if (activeMaterialIds.has(m.id)) {
+        activeMaterialIds.delete(m.id);
+        badge.classList.add('inactive');
+      } else {
+        activeMaterialIds.add(m.id);
+        badge.classList.remove('inactive');
+      }
+      document.querySelectorAll('.material-item').forEach(el => {
+        el.classList.toggle('active', activeMaterialIds.has(el.dataset.id));
+      });
+      updateWelcomeMessage();
+    };
+    container.appendChild(badge);
+  });
+  updateWelcomeMessage();
+}
+
+function updateWelcomeMessage() {
+  const welcomeCtx = document.getElementById('welcome-context');
+  if (!welcomeCtx) return;
+  const activeNames = allMaterials
+    .filter(m => activeMaterialIds.has(m.id))
+    .map(m => `<strong>${m.name}</strong>`);
+  if (activeNames.length) {
+    welcomeCtx.innerHTML = `I'm currently using: ${activeNames.join(', ')}. What would you like to explore?`;
+  } else {
+    welcomeCtx.textContent = 'Select materials from the sidebar to get started.';
+  }
+}
+
+// ─── RECENT UPLOADS ───────────────────────────────────────────────────────────
+function renderRecentUploads() {
+  const list = document.getElementById('recent-list');
+  list.innerHTML = '';
+  if (!allMaterials.length) {
+    list.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:8px 0">Nothing uploaded yet.</div>';
+    return;
+  }
+  allMaterials.slice(0, 8).forEach(m => {
+    const { icon, bg } = getTypeIcon(m.type);
+    const div = document.createElement('div');
+    div.className = 'recent-item';
+    div.innerHTML = `
+      <div class="ri-icon" style="background:${bg}">${icon}</div>
+      <div class="ri-info">
+        <div class="ri-name">${m.name}</div>
+        <div class="ri-meta">${m.type} · ${statusBadge(m.status)}</div>
+      </div>
+      <div class="ri-action" onclick="event.stopPropagation();activateMaterialAndChat('${m.id}')">Ask questions →</div>`;
+    list.appendChild(div);
+  });
+}
+
+function activateMaterialAndChat(id) {
+  activeMaterialIds.add(id);
+  renderSidebar();
+  showView('chat');
+}
+
+// ─── UPLOAD — FILE ────────────────────────────────────────────────────────────
+function triggerUpload(type) {
+  const accept = { pdf: '.pdf,.epub', video: '.mp4,.mov,.mkv,.webm', notes: '.docx,.pptx,.txt,.md', audio: '.mp3,.m4a,.wav' };
+  const input = document.getElementById('file-input');
+  input.accept = accept[type] || '*';
+  input.click();
+}
+
+async function handleFileUpload(e) {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+  const file = files[0];
+  e.target.value = '';
+
+  showModal(`Uploading "${file.name}"`, 'Sending to server…');
+  startProgressPulse();
+
+  try {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch(`${API}/api/ingest/file`, { method: 'POST', body: form });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Upload failed');
+    }
+    const data = await res.json();
+    updateModal('Processing content', 'Extracting text and creating embeddings…');
+    await pollUntilReady(data.material_id);
+    hideModal();
+    await loadMaterials();
+    showToast(`"${file.name}" is ready!`);
+  } catch(err) {
+    hideModal();
+    showToast(`Error: ${err.message}`, true);
+  }
+}
+
+// ─── UPLOAD — URL ─────────────────────────────────────────────────────────────
+function showUrlInput(type) {
+  currentUrlType = type;
+  const area = document.getElementById('url-input-area');
+  area.classList.add('show');
+  const field = document.getElementById('url-field');
+  field.placeholder = type === 'youtube'
+    ? 'Paste YouTube URL (e.g. https://youtube.com/watch?v=...)'
+    : 'Paste article or webpage URL';
+  field.focus();
+}
+function hideUrlInput() { document.getElementById('url-input-area').classList.remove('show'); }
+
+async function processUrl() {
+  const url = document.getElementById('url-field').value.trim();
+  if (!url) return;
+  hideUrlInput();
+  document.getElementById('url-field').value = '';
+
+  const isYT = /youtube|youtu\.be/i.test(url);
+  showModal(
+    isYT ? 'Fetching YouTube transcript' : 'Processing web article',
+    isYT ? 'Extracting transcript…' : 'Fetching and parsing article…'
+  );
+  startProgressPulse();
+
+  try {
+    const res = await fetch(`${API}/api/ingest/url`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'URL processing failed');
+    }
+    const data = await res.json();
+    updateModal('Indexing content', 'Creating searchable embeddings…');
+    await pollUntilReady(data.material_id);
+    hideModal();
+    await loadMaterials();
+    showToast('Content ready!');
+  } catch(err) {
+    hideModal();
+    showToast(`Error: ${err.message}`, true);
+  }
+}
+
+// ─── POLLING — wait for backend to finish processing ─────────────────────────
+async function pollUntilReady(materialId, maxWaitMs = 300000) {
+  const start = Date.now();
+  while (Date.now() - start < maxWaitMs) {
+    await sleep(2000);
+    try {
+      const res = await fetch(`${API}/api/ingest/status/${materialId}`);
+      const data = await res.json();
+      if (data.status === 'ready') return data;
+      if (data.status === 'error') throw new Error(data.error_msg || 'Processing failed');
+      updateModal('Processing content', `Indexing… ${data.chunk_count || 0} chunks so far`);
+    } catch(e) {
+      if (e.message.includes('Processing failed')) throw e;
+    }
+  }
+  throw new Error('Processing timed out');
+}
+
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+function showModal(title, sub) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-sub').textContent = sub;
+  document.getElementById('modal-bar').style.width = '0%';
+  document.getElementById('modal').classList.add('show');
+}
+function updateModal(title, sub) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-sub').textContent = sub;
+}
+function hideModal() { document.getElementById('modal').classList.remove('show'); }
+
+function startProgressPulse() {
+  let p = 0;
+  const bar = document.getElementById('modal-bar');
+  const iv = setInterval(() => {
+    p = Math.min(p + Math.random() * 8, 90);
+    bar.style.width = p + '%';
+    if (!document.getElementById('modal').classList.contains('show')) clearInterval(iv);
+  }, 600);
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg, isError = false) {
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:200;
+    background:${isError ? 'var(--coral-dim)' : 'var(--accent-dim)'};
+    border:1px solid ${isError ? 'var(--coral)' : 'var(--accent)'};
+    color:${isError ? 'var(--coral)' : 'var(--accent)'};
+    padding:12px 20px;border-radius:10px;font-size:13px;
+    animation:fadeIn 0.2s ease;max-width:320px;`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+// ─── CHAT ─────────────────────────────────────────────────────────────────────
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text || isThinking) return;
+
+  addMessage(text, 'user');
+  input.value = '';
+  autoResize(input);
+  document.getElementById('suggestions').style.display = 'none';
+  showThinking();
+
+  try {
+    const body = { question: text };
+    if (currentSessionId)         body.session_id = currentSessionId;
+    if (activeMaterialIds.size)   body.material_ids = [...activeMaterialIds];
+
+    const res = await fetch(`${API}/api/qa/ask`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Request failed');
+    }
+
+    const data = await res.json();
+    currentSessionId = data.session_id;
+    removeThinking();
+
+    // Format answer — convert markdown-ish bold/newlines to HTML
+    let html = `<p>${data.answer
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/\n/g, '<br>')}</p>`;
+
+    // Add source citations
+    if (data.sources && data.sources.length) {
+      const src = data.sources[0];
+      const mat = allMaterials.find(m => m.id === src.material_id);
+      const matName = mat ? mat.name : src.material_id;
+      let location = '';
+      if (src.page_num)    location = ` · page ${src.page_num}`;
+      if (src.timestamp_s >= 0) {
+        const m = Math.floor(src.timestamp_s / 60);
+        const s = Math.floor(src.timestamp_s % 60);
+        location = ` · ${m}:${String(s).padStart(2,'0')}`;
+      }
+      html += `<div class="citation-card">
+        <div class="citation-source">📍 ${matName}${location}</div>
+        ${src.text}
+      </div>`;
+    }
+
+    addMessageHTML(html, 'ai');
+  } catch(err) {
+    removeThinking();
+    addMessageHTML(`<p style="color:var(--coral)">Error: ${err.message}</p>`, 'ai');
+  }
+}
+
+function addMessage(text, role) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.innerHTML = `<div class="msg-avatar">${role === 'ai' ? 'LS' : '👤'}</div><div class="msg-bubble"><p>${text}</p></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+function addMessageHTML(html, role) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.innerHTML = `<div class="msg-avatar">${role === 'ai' ? 'LS' : '👤'}</div><div class="msg-bubble">${html}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+function showThinking() {
+  isThinking = true;
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ai'; div.id = 'thinking-msg';
+  div.innerHTML = `<div class="msg-avatar">LS</div><div class="msg-bubble"><div class="thinking"><span></span><span></span><span></span></div></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+function removeThinking() {
+  isThinking = false;
+  const el = document.getElementById('thinking-msg');
+  if (el) el.remove();
+}
+function sendSuggestion(btn) {
+  document.getElementById('chat-input').value = btn.textContent;
+  sendMessage();
+}
+function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 160) + 'px'; }
+
+// ─── LIBRARY ──────────────────────────────────────────────────────────────────
+function renderLibrary(filterType = 'all') {
+  const grid = document.getElementById('library-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  let mats = allMaterials;
+  if (filterType !== 'all') mats = mats.filter(m => m.type === filterType);
+  if (!mats.length) {
+    grid.innerHTML = '<div style="color:var(--text3);font-size:13px;grid-column:1/-1">No materials found.</div>';
+    return;
+  }
+  mats.forEach(m => {
+    const { icon, bg } = getTypeIcon(m.type);
+    const card = document.createElement('div');
+    card.className = 'lib-card';
+    card.innerHTML = `
+      <div class="lib-card-cover" style="background:${bg}">${icon}</div>
+      <div class="lib-card-body">
+        <div class="lib-card-title">${m.name}</div>
+        <div class="lib-card-meta">${m.type} · ${m.chunk_count} chunks</div>
+        <div class="lib-card-tags"><span class="tag">${statusBadge(m.status)}</span></div>
+      </div>
+      <div class="lib-card-footer" style="gap:8px;flex-wrap:wrap">
+        <button class="suggestion" style="font-size:11px;padding:4px 10px" onclick="activateMaterialAndChat('${m.id}')">Ask questions</button>
+        <button class="suggestion" style="font-size:11px;padding:4px 10px" onclick="loadSummary('${m.id}')">Summary</button>
+        <button class="suggestion" style="font-size:11px;padding:4px 10px" onclick="loadFlashcards('${m.id}')">Flashcards</button>
+        <button class="suggestion" style="font-size:11px;padding:4px 10px;color:var(--coral);border-color:rgba(240,112,96,0.3)" onclick="deleteMaterial('${m.id}')">Delete</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function filterLib(btn, type) {
+  document.querySelectorAll('.lib-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderLibrary(type);
+}
+
+async function deleteMaterial(id) {
+  if (!confirm('Delete this material and all its data?')) return;
+  await fetch(`${API}/api/materials/${id}`, { method: 'DELETE' });
+  activeMaterialIds.delete(id);
+  await loadMaterials();
+  renderLibrary();
+  showToast('Material deleted.');
+}
+
+// ─── FLASHCARDS ───────────────────────────────────────────────────────────────
+async function loadFlashcards(materialId) {
+  showView('flashcards');
+  const mat = allMaterials.find(m => m.id === materialId);
+  document.getElementById('fc-title').textContent = mat ? mat.name : 'Flashcards';
+  document.getElementById('fc-meta').textContent = 'Loading…';
+
+  // Try fetching existing cards first
+  let res = await fetch(`${API}/api/flashcards/${materialId}`);
+  let cards = await res.json();
+
+  // If none exist, generate them
+  if (!cards.length) {
+    document.getElementById('fc-meta').textContent = 'Generating flashcards with AI…';
+    res = await fetch(`${API}/api/flashcards/generate/${materialId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ count: 10 }),
+    });
+    cards = await res.json();
+  }
+
+  currentFlashcards = cards;
+  cardIdx = 0;
+  renderFlashcardsView();
+}
+
+function renderFlashcardsView() {
+  if (!currentFlashcards.length) {
+    document.getElementById('fc-meta').textContent = 'No flashcards yet — open a material from the Library to generate some.';
+    document.getElementById('fc-question').textContent = 'No cards loaded';
+    document.getElementById('fc-answer').textContent = 'Go to Library → pick a material → Flashcards';
+    return;
+  }
+  const card = currentFlashcards[cardIdx];
+  document.getElementById('fc-question').textContent = card.question;
+  document.getElementById('fc-answer').textContent = card.answer;
+  document.getElementById('fc-meta').textContent = `${currentFlashcards.length} cards`;
+  const pct = Math.round((cardIdx + 1) / currentFlashcards.length * 100);
+  document.getElementById('fc-progress-fill').style.width = pct + '%';
+  document.getElementById('fc-count').textContent = `${cardIdx + 1} / ${currentFlashcards.length}`;
+}
+
+function flipCard() { document.getElementById('flashcard').classList.toggle('flipped'); }
+
+async function nextCard(result) {
+  document.getElementById('flashcard').classList.remove('flipped');
+  const card = currentFlashcards[cardIdx];
+  if (card) {
+    await fetch(`${API}/api/flashcards/${card.id}/review`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ result }),
+    });
+  }
+  cardIdx = (cardIdx + 1) % currentFlashcards.length;
+  setTimeout(renderFlashcardsView, 150);
+}
+
+// ─── SUMMARY ─────────────────────────────────────────────────────────────────
+async function loadSummary(materialId) {
+  currentSummaryId = materialId;
+  showView('summary');
+  document.getElementById('sum-title').textContent = 'Generating summary…';
+  document.getElementById('sum-body').innerHTML = '<p style="color:var(--text3)">Please wait…</p>';
+  document.getElementById('sum-concepts').innerHTML = '';
+
+  try {
+    const res = await fetch(`${API}/api/materials/${materialId}/summary`);
+    if (!res.ok) throw new Error('Could not generate summary');
+    const data = await res.json();
+
+    document.getElementById('sum-title').textContent = data.title;
+    document.getElementById('sum-meta').textContent = `AI-generated summary · ${allMaterials.find(m=>m.id===materialId)?.name || ''}`;
+
+    let bodyHtml = `<p>${data.overview}</p>`;
+    (data.sections || []).forEach(s => {
+      bodyHtml += `<h3>${s.heading}</h3><p>${s.content}</p>`;
+    });
+    if (data.study_tips?.length) {
+      bodyHtml += `<h3>Study tips</h3><ul>${data.study_tips.map(t=>`<li>${t}</li>`).join('')}</ul>`;
+    }
+    document.getElementById('sum-body').innerHTML = bodyHtml;
+
+    const concepts = document.getElementById('sum-concepts');
+    concepts.innerHTML = '';
+    (data.key_concepts || []).forEach(c => {
+      concepts.innerHTML += `<div class="key-concept"><div class="key-dot"></div>${c}</div>`;
+    });
+
+    // Wire the action buttons
+    document.getElementById('sum-flashcards-btn').onclick = () => loadFlashcards(materialId);
+    document.getElementById('sum-chat-btn').onclick = () => activateMaterialAndChat(materialId);
+  } catch(err) {
+    document.getElementById('sum-body').innerHTML = `<p style="color:var(--coral)">Error: ${err.message}</p>`;
+  }
+}
+
+function renderSummaryView() {
+  // Only auto-load if we already have a summary target
+  if (currentSummaryId) loadSummary(currentSummaryId);
+}
+
+// ─── LIBRARY RENDER HOOK ─────────────────────────────────────────────────────
+function renderLibraryIfNeeded() { renderLibrary(); }
+
+// ─── OFFLINE DETECTION ───────────────────────────────────────────────────────
+function checkOnline() {
+  document.getElementById('offline-banner').style.display = navigator.onLine ? 'none' : 'flex';
+}
+window.addEventListener('online', checkOnline);
+window.addEventListener('offline', checkOnline);
+checkOnline();
+
+// ─── SETTINGS TOGGLES ────────────────────────────────────────────────────────
+function toggleContext(el) { el.classList.toggle('inactive'); }
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+loadMaterials();
+// Poll every 5s to pick up newly-processed materials
+setInterval(loadMaterials, 5000);
+</script>
+</body>
+</html>
