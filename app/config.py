@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     
     webshare_username: str = "zkasvwpi"
     webshare_password: str = "xvf901g2tbvs"
+    
+    supadata_api_key: str = "sd_f97cb0d4837c713187a566213337ec95"
 
     # ── AI — Offline (Ollama) ─────────────────────────────────────────────────
     ollama_base_url: str = "http://localhost:11434"

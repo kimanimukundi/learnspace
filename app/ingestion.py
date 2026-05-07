@@ -244,31 +244,25 @@ async def _youtube_transcript_api(url: str) -> Tuple[str, str]:
     loop = asyncio.get_event_loop()
 
     def _run():
-        try:
-            from youtube_transcript_api import YouTubeTranscriptApi
-            from youtube_transcript_api.proxies import WebshareProxyConfig
-        except ImportError:
-            raise RuntimeError("youtube-transcript-api not installed.")
-
         import re as _re
+        import httpx
+
         match = _re.search(r"(?:v=|youtu\.be/)([A-Za-z0-9_-]{11})", url)
         if not match:
             raise ValueError(f"Could not parse video ID from: {url}")
         video_id = match.group(1)
 
-        # Use proxy if credentials are configured
-        if settings.webshare_username and settings.webshare_password:
-            ytt = YouTubeTranscriptApi(
-                proxy_config=WebshareProxyConfig(
-                    proxy_username=settings.webshare_username,
-                    proxy_password=settings.webshare_password,
-                )
-            )
-        else:
-            ytt = YouTubeTranscriptApi()
+        response = httpx.get(
+            "https://api.supadata.ai/v1/youtube/transcript",
+            params={"videoId": video_id, "text": True},
+            headers={"x-api-key": settings.supadata_api_key},
+            timeout=30,
+        )
+        if response.status_code != 200:
+            raise ValueError(f"Supadata API error: {response.text}")
 
-        fetched = ytt.fetch(video_id)
-        text = " ".join(snippet.text for snippet in fetched)
+        data = response.json()
+        text = data.get("content", "")
         return text, f"YouTube ({video_id})"
 
     return await loop.run_in_executor(None, _run)
