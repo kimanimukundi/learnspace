@@ -22,6 +22,9 @@ class Settings(BaseSettings):
    # ── AI — Online (Groq) ───────────────────────────────────────────────────────
     groq_api_key: str = ""
     groq_model: str = "llama-3.3-70b-versatile"
+    
+    webshare_username: str = "zkasvwpi"
+    webshare_password: str = "xvf901g2tbvs"
 
     # ── AI — Offline (Ollama) ─────────────────────────────────────────────────
     ollama_base_url: str = "http://localhost:11434"

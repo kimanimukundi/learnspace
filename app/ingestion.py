@@ -246,6 +246,7 @@ async def _youtube_transcript_api(url: str) -> Tuple[str, str]:
     def _run():
         try:
             from youtube_transcript_api import YouTubeTranscriptApi
+            from youtube_transcript_api.proxies import WebshareProxyConfig
         except ImportError:
             raise RuntimeError("youtube-transcript-api not installed.")
 
@@ -255,7 +256,17 @@ async def _youtube_transcript_api(url: str) -> Tuple[str, str]:
             raise ValueError(f"Could not parse video ID from: {url}")
         video_id = match.group(1)
 
-        ytt = YouTubeTranscriptApi()
+        # Use proxy if credentials are configured
+        if settings.webshare_username and settings.webshare_password:
+            ytt = YouTubeTranscriptApi(
+                proxy_config=WebshareProxyConfig(
+                    proxy_username=settings.webshare_username,
+                    proxy_password=settings.webshare_password,
+                )
+            )
+        else:
+            ytt = YouTubeTranscriptApi()
+
         fetched = ytt.fetch(video_id)
         text = " ".join(snippet.text for snippet in fetched)
         return text, f"YouTube ({video_id})"
