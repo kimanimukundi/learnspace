@@ -174,7 +174,7 @@ async def get_status(
     material_id: str,
     db: aiosqlite.Connection = Depends(get_db),
 ):
-    async with db.execute(
+    async with db.execute_query(
         "SELECT id, status, chunk_count, error_msg FROM materials WHERE id = ?",
         (material_id,),
     ) as cur:

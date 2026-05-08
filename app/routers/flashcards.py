@@ -75,7 +75,7 @@ async def generate(
     Fetches the first ~4000 words of chunks as source text.
     """
     # Validate material exists and is ready
-    async with db.execute(
+    async with db.execute_query(
         "SELECT status FROM materials WHERE id = ?", (material_id,)
     ) as cur:
         row = await cur.fetchone()
@@ -86,7 +86,7 @@ async def generate(
         raise HTTPException(409, f"Material not ready (status: {row['status']})")
 
     # Fetch source text
-    async with db.execute(
+    async with db.execute_query(
         "SELECT text FROM chunks WHERE material_id = ? ORDER BY chunk_index LIMIT 15",
         (material_id,),
     ) as cur:
@@ -154,7 +154,7 @@ async def get_due_cards(
     now = datetime.utcnow().isoformat()
 
     if material_id:
-        async with db.execute(
+        async with db.execute_query(
             "SELECT * FROM flashcards WHERE material_id = ? AND "
             "(next_review IS NULL OR next_review <= ?) "
             "ORDER BY next_review ASC LIMIT ?",
@@ -162,7 +162,7 @@ async def get_due_cards(
         ) as cur:
             rows = await cur.fetchall()
     else:
-        async with db.execute(
+        async with db.execute_query(
             "SELECT * FROM flashcards WHERE next_review IS NULL OR next_review <= ? "
             "ORDER BY next_review ASC LIMIT ?",
             (now, limit),
@@ -177,7 +177,7 @@ async def list_cards(
     material_id: str,
     db: aiosqlite.Connection = Depends(get_db),
 ):
-    async with db.execute(
+    async with db.execute_query(
         "SELECT * FROM flashcards WHERE material_id = ? ORDER BY created_at ASC",
         (material_id,),
     ) as cur:
@@ -196,7 +196,7 @@ async def review_card(
     Record a review result and compute the next review date using
     a simplified SM-2 spaced repetition algorithm.
     """
-    async with db.execute(
+    async with db.execute_query(
         "SELECT * FROM flashcards WHERE id = ?", (card_id,)
     ) as cur:
         row = await cur.fetchone()

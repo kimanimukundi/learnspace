@@ -125,7 +125,7 @@ async def get_history(
     session_id: str,
     db: aiosqlite.Connection = Depends(get_db),
 ):
-    async with db.execute(
+    async with db.execute_query(
         "SELECT role, content, created_at FROM chat_messages "
         "WHERE session_id = ? ORDER BY created_at ASC",
         (session_id,),
@@ -154,7 +154,7 @@ async def _load_history(
     session_id: str,
     limit: int = 20,
 ) -> List[dict]:
-    async with db.execute(
+    async with db.execute_query(
         "SELECT role, content FROM chat_messages "
         "WHERE session_id = ? ORDER BY created_at DESC LIMIT ?",
         (session_id, limit),

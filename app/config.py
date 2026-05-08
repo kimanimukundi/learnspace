@@ -10,6 +10,9 @@ import os
 
 
 class Settings(BaseSettings):
+    
+    database_url: str = ""
+    
     # ── Paths ─────────────────────────────────────────────────────────────────
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     upload_dir: str = os.path.join(base_dir, "uploads")

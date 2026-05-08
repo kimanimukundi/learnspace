@@ -75,12 +75,12 @@ async def list_materials(
     db: aiosqlite.Connection = Depends(get_db),
 ):
     if status:
-        async with db.execute(
+        async with db.execute_query(
             "SELECT * FROM materials WHERE status = ? ORDER BY created_at DESC", (status,)
         ) as cur:
             rows = await cur.fetchall()
     else:
-        async with db.execute(
+        async with db.execute_query(
             "SELECT * FROM materials ORDER BY created_at DESC"
         ) as cur:
             rows = await cur.fetchall()
@@ -93,7 +93,7 @@ async def get_material(
     material_id: str,
     db: aiosqlite.Connection = Depends(get_db),
 ):
-    async with db.execute(
+    async with db.execute_query(
         "SELECT * FROM materials WHERE id = ?", (material_id,)
     ) as cur:
         row = await cur.fetchone()
@@ -109,7 +109,7 @@ async def delete_material(
     material_id: str,
     db: aiosqlite.Connection = Depends(get_db),
 ):
-    async with db.execute("SELECT id FROM materials WHERE id = ?", (material_id,)) as cur:
+    async with db.execute_query("SELECT id FROM materials WHERE id = ?", (material_id,)) as cur:
         row = await cur.fetchone()
     if not row:
         raise HTTPException(404, "Material not found")
@@ -134,7 +134,7 @@ async def get_summary(
     Generate an AI summary from the material's stored chunks.
     The first ~6000 words of chunks are used as context.
     """
-    async with db.execute(
+    async with db.execute_query(
         "SELECT status FROM materials WHERE id = ?", (material_id,)
     ) as cur:
         row = await cur.fetchone()
@@ -145,7 +145,7 @@ async def get_summary(
         raise HTTPException(409, f"Material not ready yet (status: {row['status']})")
 
     # Fetch enough chunks to fill ~6000 words
-    async with db.execute(
+    async with db.execute_query(
         "SELECT text FROM chunks WHERE material_id = ? ORDER BY chunk_index LIMIT 20",
         (material_id,),
     ) as cur:
@@ -183,7 +183,7 @@ async def get_chunks(
     offset: int = 0,
     db: aiosqlite.Connection = Depends(get_db),
 ):
-    async with db.execute(
+    async with db.execute_query(
         "SELECT id, chunk_index, text, page_num, timestamp_s FROM chunks "
         "WHERE material_id = ? ORDER BY chunk_index LIMIT ? OFFSET ?",
         (material_id, limit, offset),
